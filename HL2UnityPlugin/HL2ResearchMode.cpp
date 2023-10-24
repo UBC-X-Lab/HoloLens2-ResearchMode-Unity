@@ -67,7 +67,7 @@ namespace winrt::HL2UnityPlugin::implementation
     HRESULT HL2ResearchMode::CheckCamConsent()
     {
         HRESULT hr = S_OK;
-        DWORD waitResult = WaitForSingleObject(camConsentGiven, INFINITE);
+        DWORD waitResult = WaitForSingleObject(camConsentGiven, INFINITE); 
         if (waitResult == WAIT_OBJECT_0)
         {
             switch (camAccessCheck)
@@ -258,10 +258,10 @@ namespace winrt::HL2UnityPlugin::implementation
             {
                 IResearchModeSensorFrame* pDepthSensorFrame = nullptr;
                 ResearchModeSensorResolution resolution;
-                pHL2ResearchMode->m_depthSensor->GetNextBuffer(&pDepthSensorFrame);
+                pHL2ResearchMode->m_depthSensor->GetNextBuffer(&pDepthSensorFrame); // get the buffer of the next sensor frame (why there is sensor frame and also depth sensor frame?)
 
                 ResearchModeSensorTimestamp timestamp;
-                pDepthSensorFrame->GetTimeStamp(&timestamp);
+                pDepthSensorFrame->GetTimeStamp(&timestamp); // get the timestemp of the frame
 
                 if (timestamp.HostTicks == lastTs) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(10));    // sleep for 0.01 second
@@ -274,18 +274,19 @@ namespace winrt::HL2UnityPlugin::implementation
                 pHL2ResearchMode->m_depthResolution = resolution;
                 
                 IResearchModeSensorDepthFrame* pDepthFrame = nullptr;
-                winrt::check_hresult(pDepthSensorFrame->QueryInterface(IID_PPV_ARGS(&pDepthFrame)));
+                winrt::check_hresult(pDepthSensorFrame->QueryInterface(IID_PPV_ARGS(&pDepthFrame))); // get the next depth sensor frame... this seems to be meta data as well
 
                 size_t outBufferCount = 0;
                 const UINT16* pDepth = nullptr;
-                pDepthFrame->GetBuffer(&pDepth, &outBufferCount);
+                pDepthFrame->GetBuffer(&pDepth, &outBufferCount); // this seems to be the actuall depth data
                 pHL2ResearchMode->m_depthBufferSize = outBufferCount;
                 size_t outAbBufferCount = 0;
                 const UINT16* pAbImage = nullptr;
                 pDepthFrame->GetAbDepthBuffer(&pAbImage, &outAbBufferCount);
 
-                auto pDepthTexture = std::make_unique<uint8_t[]>(outBufferCount);
-                auto pAbTexture = std::make_unique<uint8_t[]>(outAbBufferCount);
+                // what is the difference between depth data and texture data? Looks like pDepth stores raw depth image \in mm (?), while the texture converts to grayscale
+                auto pDepthTexture = std::make_unique<uint8_t[]>(outBufferCount); 
+                auto pAbTexture = std::make_unique<uint8_t[]>(outAbBufferCount); // this is exported, but probably does not concern us
                 std::vector<float> pointCloud;
 
                 // get tracking transform
@@ -293,7 +294,7 @@ namespace winrt::HL2UnityPlugin::implementation
                 if (pHL2ResearchMode->m_reconstructShortThrowPointCloud) 
                 {
                     auto ts = PerceptionTimestampHelper::FromSystemRelativeTargetTime(HundredsOfNanoseconds(checkAndConvertUnsigned(timestamp.HostTicks)));
-                    transToWorld = pHL2ResearchMode->m_locator.TryLocateAtTimestamp(ts, pHL2ResearchMode->m_refFrame);
+                    transToWorld = pHL2ResearchMode->m_locator.TryLocateAtTimestamp(ts, pHL2ResearchMode->m_refFrame); // translating to world, but why doing like this???
                     if (transToWorld == nullptr) continue;
                 }
 
@@ -330,7 +331,7 @@ namespace winrt::HL2UnityPlugin::implementation
                                 auto pointOnUnitPlane = XMFLOAT3(xy[0], xy[1], 1);
                                 auto tempPoint = (float)depth / 1000 * XMVector3Normalize(XMLoadFloat3(&pointOnUnitPlane));
                                 // apply transformation
-                                auto pointInWorld = XMVector3Transform(tempPoint, depthToWorld);
+                                auto pointInWorld = XMVector3Transform(tempPoint, depthToWorld); // our nice world depth should just be the z value of the point here!
 
                                 // filter point cloud based on region of interest
                                 if (!pHL2ResearchMode->m_useRoiFilter ||
@@ -358,7 +359,7 @@ namespace winrt::HL2UnityPlugin::implementation
                         // save the depth of center pixel
                         if (pHL2ResearchMode->m_reconstructShortThrowPointCloud && 
                             i == (UINT)(0.35 * resolution.Height) && j == (UINT)(0.5 * resolution.Width)
-                            && pointCloud.size()>=3)
+                            && pointCloud.size()>=3) 
                         {
                             pHL2ResearchMode->m_centerDepth = depth;
                             if (depth > pHL2ResearchMode->depthCamRoi.depthNearClip && depth < pHL2ResearchMode->depthCamRoi.depthFarClip)
