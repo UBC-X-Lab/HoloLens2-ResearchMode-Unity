@@ -320,10 +320,10 @@ namespace winrt::HL2UnityPlugin::implementation
 
                         if (pHL2ResearchMode->m_reconstructShortThrowPointCloud)
                         {
-                            // back-project point cloud within Roi
-                            if (i > pHL2ResearchMode->depthCamRoi.kRowLower * resolution.Height && i < pHL2ResearchMode->depthCamRoi.kRowUpper * resolution.Height &&
-                                j > pHL2ResearchMode->depthCamRoi.kColLower * resolution.Width && j < pHL2ResearchMode->depthCamRoi.kColUpper * resolution.Width &&
-                                depth > pHL2ResearchMode->depthCamRoi.depthNearClip && depth < pHL2ResearchMode->depthCamRoi.depthFarClip)
+                            // back-project point cloud within Roi (region of interest)
+                            if (i > pHL2ResearchMode->depthCamRoi.kRowLower * resolution.Height && i < pHL2ResearchMode->depthCamRoi.kRowUpper * resolution.Height && // i > 102.4, i < 281.6, total 179 pixels
+                                j > pHL2ResearchMode->depthCamRoi.kColLower * resolution.Width && j < pHL2ResearchMode->depthCamRoi.kColUpper * resolution.Width) // j > 153.6, j < 358.4, total 205 pixels, total 205 * 179 = 36695
+                                //&& depth > pHL2ResearchMode->depthCamRoi.depthNearClip && depth < pHL2ResearchMode->depthCamRoi.depthFarClip) // ditch near and far clip to get a constant point cloud count
                             {
                                 float xy[2] = { 0, 0 };
                                 float uv[2] = { j, i };
@@ -331,7 +331,7 @@ namespace winrt::HL2UnityPlugin::implementation
                                 auto pointOnUnitPlane = XMFLOAT3(xy[0], xy[1], 1);
                                 auto tempPoint = (float)depth / 1000 * XMVector3Normalize(XMLoadFloat3(&pointOnUnitPlane));
                                 // apply transformation
-                                auto pointInWorld = XMVector3Transform(tempPoint, depthToWorld); // our nice world depth should just be the z value of the point here!
+                                auto pointInWorld = XMVector3Transform(tempPoint, depthToWorld);
 
                                 // filter point cloud based on region of interest
                                 if (!pHL2ResearchMode->m_useRoiFilter ||
@@ -543,9 +543,9 @@ namespace winrt::HL2UnityPlugin::implementation
                         if (pHL2ResearchMode->m_reconstructLongThrowPointCloud)
                         {
                             // back-project point cloud within Roi
-                            if (i > pHL2ResearchMode->depthCamRoi.kRowLower * resolution.Height && i < pHL2ResearchMode->depthCamRoi.kRowUpper * resolution.Height &&
-                                j > pHL2ResearchMode->depthCamRoi.kColLower * resolution.Width && j < pHL2ResearchMode->depthCamRoi.kColUpper * resolution.Width &&
-                                depth > 200)
+                            if (i > pHL2ResearchMode->depthCamRoi.kRowLower * resolution.Height && i < pHL2ResearchMode->depthCamRoi.kRowUpper * resolution.Height && // i > 288 * 0.2 = 57.6, i < 288 * 0.55 = 158.4
+                                j > pHL2ResearchMode->depthCamRoi.kColLower * resolution.Width && j < pHL2ResearchMode->depthCamRoi.kColUpper * resolution.Width && // j > 320 * 0.3 = 96, j < 320 * 0.7 = 224
+                                depth > 200) // total: 101 * 127 = 12827
                             {
                                 float xy[2] = { 0, 0 };
                                 float uv[2] = { j, i };
