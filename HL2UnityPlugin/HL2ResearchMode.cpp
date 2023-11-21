@@ -334,7 +334,7 @@ namespace winrt::HL2UnityPlugin::implementation
                                 auto pointInWorld = XMVector3Transform(tempPoint, depthToWorld);
 
                                 // filter point cloud based on region of interest
-                                if (!pHL2ResearchMode->m_useRoiFilter ||
+                                if (!pHL2ResearchMode->m_useRoiFilter || // m_useRoiFilter is false by default
                                     (pHL2ResearchMode->m_useRoiFilter && XMVector3InBounds(pointInWorld - roiCenter, roiBound)))
                                 {
                                     pointCloud.push_back(XMVectorGetX(pointInWorld));
