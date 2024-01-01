@@ -329,7 +329,17 @@ namespace winrt::HL2UnityPlugin::implementation
                                 float uv[2] = { j, i };
                                 pHL2ResearchMode->m_pDepthCameraSensor->MapImagePointToCameraUnitPlane(uv, xy);
                                 auto pointOnUnitPlane = XMFLOAT3(xy[0], xy[1], 1);
-                                auto tempPoint = (float)depth / 1000 * XMVector3Normalize(XMLoadFloat3(&pointOnUnitPlane));
+
+                                // cast depth inside the nearclip to of near and far clip to 1 meter away
+                                auto tempPoint = XMVector3Normalize(XMLoadFloat3(&pointOnUnitPlane));
+                                if (depth > 200 && depth < 900) {
+                                    tempPoint = (float)depth / 1000 * tempPoint;
+                                }
+                                else {
+                                    //tempPoint = 1.02f * tempPoint;
+                                    tempPoint = 0.0f * tempPoint;
+                                }
+
                                 // apply transformation
                                 auto pointInWorld = XMVector3Transform(tempPoint, depthToWorld);
 
@@ -545,7 +555,7 @@ namespace winrt::HL2UnityPlugin::implementation
                             // back-project point cloud within Roi
                             if (i > pHL2ResearchMode->depthCamRoi.kRowLower * resolution.Height && i < pHL2ResearchMode->depthCamRoi.kRowUpper * resolution.Height && // i > 288 * 0.2 = 57.6, i < 288 * 0.55 = 158.4
                                 j > pHL2ResearchMode->depthCamRoi.kColLower * resolution.Width && j < pHL2ResearchMode->depthCamRoi.kColUpper * resolution.Width && // j > 320 * 0.3 = 96, j < 320 * 0.7 = 224
-                                depth > 200) // total: 101 * 127 = 12827
+                                depth > 200) // total: 127 * 101 = 12827 (W * H)
                             {
                                 float xy[2] = { 0, 0 };
                                 float uv[2] = { j, i };

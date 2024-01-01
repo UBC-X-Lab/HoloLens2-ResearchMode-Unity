@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 //using System.Runtime.Serialization.Formatters.Binary;
-#if WINDOWS_UWP
+#if UNITY_WSA && !UNITY_EDITOR
 using Windows.Networking.Sockets;
 using Windows.Storage.Streams;
 #endif
@@ -35,7 +35,7 @@ public class TCPClient : MonoBehaviour
         get { return connected; }
     }
 
-#if WINDOWS_UWP
+#if UNITY_WSA && !UNITY_EDITOR
     StreamSocket socket = null;
     public DataWriter dw;
     public DataReader dr;
