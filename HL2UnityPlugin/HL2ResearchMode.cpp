@@ -332,13 +332,13 @@ namespace winrt::HL2UnityPlugin::implementation
 
                                 // cast depth inside the nearclip to of near and far clip to 1 meter away
                                 auto tempPoint = XMVector3Normalize(XMLoadFloat3(&pointOnUnitPlane));
-                                if (depth > 200 && depth < 900) {
+                                if (depth > 200 && depth < 1000) {
                                     tempPoint = (float)depth / 1000 * tempPoint;
                                 }
-                                else {
-                                    //tempPoint = 1.02f * tempPoint;
-                                    tempPoint = 0.0f * tempPoint;
-                                }
+                                //else {
+                                //    //tempPoint = 1.02f * tempPoint;
+                                //    tempPoint = 0.0f * tempPoint;
+                                //}
 
                                 // apply transformation
                                 auto pointInWorld = XMVector3Transform(tempPoint, depthToWorld);
@@ -357,6 +357,9 @@ namespace winrt::HL2UnityPlugin::implementation
                         // save depth map as grayscale texture pixel into temp buffer
                         if (depth == 0) { pDepthTexture.get()[idx] = 0; }
                         else { pDepthTexture.get()[idx] = (uint8_t)((float)depth / 1000 * 255); }
+
+                        //if (depth == 0) { pDepthTexture.get()[idx] = 0; }
+                        //else { pDepthTexture.get()[idx] = (uint8_t)(depth & 0xFF); } // use least significant 8-bit
 
                         // save AbImage as grayscale texture pixel into temp buffer
                         UINT16 abValue = pAbImage[idx];
